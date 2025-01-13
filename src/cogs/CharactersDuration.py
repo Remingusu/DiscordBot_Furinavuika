@@ -54,6 +54,12 @@ class CharactersDuration(Extension):
                         SlashCommandChoice(name="ZZZ", value="Zenless Zone Zero"),
                         SlashCommandChoice(name="Wuwa", value="Wuthering Waves")
                     ])
+    @slash_option(name="mid_update", description="The character is in the second part of the update.",
+                  opt_type=OptionType.STRING, required=False, choices=
+                  [
+                      SlashCommandChoice(name="Yes", value="midUpdate"),
+                      SlashCommandChoice(name="No", value="newUpdate")
+                  ])
     @slash_option(name="special_duration", description="If there is a banner duration that change, please add it here.",
                   opt_type=OptionType.INTEGER, required=False)
     @slash_option(name="year", description="Year of release.", opt_type=OptionType.INTEGER, required=False, choices=
@@ -61,14 +67,8 @@ class CharactersDuration(Extension):
         SlashCommandChoice(name="2025", value=2025),
         SlashCommandChoice(name="2024", value=2024),
     ])
-    @slash_option(name="mid_update", description="The character is in the second part of the update.",
-                  opt_type=OptionType.STRING, required=False, choices=
-                    [
-                        SlashCommandChoice(name="Yes", value="midUpdate"),
-                        SlashCommandChoice(name="No", value="newUpdate")
-                    ])
-    async def add(self, ctx, character, month, day, game, special_duration = 0,
-                  year = 2025, mid_update="newUpdate"):
+    async def add(self, ctx, character, month, day, game, mid_update="newUpdate", special_duration = 0,
+                  year = 2025):
 
         duration = durationMap[mid_update][game] if special_duration == 0 else special_duration
 
@@ -86,6 +86,11 @@ class CharactersDuration(Extension):
     # --------------------------------------------------------------------------------------------------------------------
 
     @slash_command(name="update", description="Changes an information about a character.")
+    @slash_option(name="year", description="Year of release.", opt_type=OptionType.INTEGER, required=False, choices=
+    [
+        SlashCommandChoice(name="2025", value=2025),
+        SlashCommandChoice(name="2024", value=2024),
+    ])
     @slash_option(name="month", description="Month of release.", opt_type=OptionType.INTEGER,
                   required=False, choices=sccListMonth)
     @slash_option(name="day", description="Day of release.", opt_type=OptionType.INTEGER, required=False)
@@ -96,22 +101,16 @@ class CharactersDuration(Extension):
         SlashCommandChoice(name="ZZZ", value="Zenless Zone Zero"),
         SlashCommandChoice(name="Wuwa", value="Wuthering Waves")
     ])
-    @slash_option(name="special_duration", description="If there is a banner duration that change, please add it here.",
-                  opt_type=OptionType.INTEGER, required=False)
-    @slash_option(name="year", description="Year of release.", opt_type=OptionType.INTEGER, required=False, choices=
-    [
-        SlashCommandChoice(name="2025", value=2025),
-        SlashCommandChoice(name="2024", value=2024),
-    ])
     @slash_option(name="mid_update", description="The character is in the second part of the update.",
                   opt_type=OptionType.STRING, required=False, choices=
                   [
                       SlashCommandChoice(name="Yes", value="midUpdate"),
                       SlashCommandChoice(name="No", value="newUpdate")
                   ])
-
-    async def update(self, ctx: SlashContext, month=None, day=None, game=None,
-                     special_duration=None, year=None, mid_update=None):
+    @slash_option(name="special_duration", description="If there is a banner duration that change, please add it here.",
+                  opt_type=OptionType.INTEGER, required=False)
+    async def update(self, ctx: SlashContext, year=None, month=None, day=None,
+                     game=None, mid_update=None, special_duration=None):
         options = self.dbObj.get_names()
 
         select_menu = StringSelectMenu(
@@ -131,6 +130,7 @@ class CharactersDuration(Extension):
             pass
 
         else:
+            #
             row = self.dbObj.get_informations(used_component.ctx.values[0])
 
             if mid_update and game is None:
@@ -159,10 +159,11 @@ class CharactersDuration(Extension):
                 diff_date = (m_date - d_act).days
                 end_date = m_date + timedelta(days=newDuration)
 
-                await used_component.ctx.send(f"Character's release date is {newYear}-{newMonth}-{newDay}, in {diff_date} days.\n"
+                await used_component.ctx.send(f"Character's release date is {newYear}-{newMonth}-{newDay}, "
+                                              f"in {diff_date} days.\n"
                                               f"Character's end date is {end_date}.")
 
-            if mid_update or special_duration:
+            if mid_update or game or special_duration:
                 m_date = datetime.strptime(f"{newYear}-{newMonth}-{newDay}", "%Y-%m-%d").date()
                 end_date = m_date + timedelta(days=newDuration)
 
