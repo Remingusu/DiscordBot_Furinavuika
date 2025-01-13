@@ -79,9 +79,9 @@ class CharactersDuration(Extension):
         diff_date = (m_date - d_act).days
         end_date = m_date + timedelta(days=duration)
 
-        await ctx.send(f"{character}'s release date is {year}-{month}-{day}, in {diff_date} days.\n"
-                       f"It's from {game}. It will be available for {duration} days.\n"
-                       f"{character}'s end date is {end_date}.")
+        await ctx.send(f"*{character}*'s release date is **{year}-{month}-{day}**, in **{diff_date}* days.\n"
+                       f"It's from *{game}*. It will be available for **{duration}** days.\n"
+                       f"*{character}*'s end date is **{end_date}**.")
 
     # --------------------------------------------------------------------------------------------------------------------
 
@@ -152,23 +152,23 @@ class CharactersDuration(Extension):
 
             self.dbObj.update_character(used_component.ctx.values[0], newYear, newMonth, newDay, newGame, newDuration)
 
-            await used_component.ctx.send(f"Character {used_component.ctx.values[0]} updated !")
+            await used_component.ctx.send(f"Character *{used_component.ctx.values[0]}* updated !")
             if year or month or day:
                 d_act = datetime.now().date()
                 m_date = datetime.strptime(f"{newYear}-{newMonth}-{newDay}", "%Y-%m-%d").date()
                 diff_date = (m_date - d_act).days
                 end_date = m_date + timedelta(days=newDuration)
 
-                await used_component.ctx.send(f"Character's release date is {newYear}-{newMonth}-{newDay}, "
-                                              f"in {diff_date} days.\n"
-                                              f"Character's end date is {end_date}.")
+                await used_component.ctx.send(f"Character's release date is **{newYear}-{newMonth}-{newDay}**, "
+                                              f"in **{diff_date}** days.\n"
+                                              f"Character's end date is **{end_date}**.")
 
             if mid_update or game or special_duration:
                 m_date = datetime.strptime(f"{newYear}-{newMonth}-{newDay}", "%Y-%m-%d").date()
                 end_date = m_date + timedelta(days=newDuration)
 
-                await used_component.ctx.send(f"It's from {newGame}. It will be available for {newDuration} days.\n"
-                                              f"Character's end date is {end_date}.")
+                await used_component.ctx.send(f"It's from *{newGame}*. It will be available for **{newDuration}** days.\n"
+                                              f"Character's end date is **{end_date}**.")
 
 # --------------------------------------------------------------------------------------------------------------------
 
@@ -194,8 +194,11 @@ class CharactersDuration(Extension):
 
         else:
             self.dbObj.remove_character(used_component.ctx.values[0])
-            await used_component.ctx.send(f"Character {used_component.ctx.values[0]} deleted !")
+            await used_component.ctx.send(f"Character *{used_component.ctx.values[0]}* deleted !")
 
 # --------------------------------------------------------------------------------------------------------------------
 
+    @slash_command(name="list", description="List all the characters and duration.")
+    async def list(self, ctx: SlashContext):
+        await ctx.send("in work...")
 
