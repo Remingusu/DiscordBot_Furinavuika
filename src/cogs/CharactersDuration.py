@@ -1,6 +1,6 @@
 from ..SQLite.DatabaseHandler import DatabaseHandler
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from interactions import Extension
 from interactions import StringSelectMenu
@@ -74,8 +74,14 @@ class CharactersDuration(Extension):
 
         self.dbObj.add_character(character, year, month, day, game, duration, ctx.author.id)
 
-        await ctx.send(f"{character}'s release date is {year}-{month}-{day}. "
-                       f"It's from {game}. It will be available for {duration} days.")
+        d_act = datetime.now().date()
+        m_date = datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d").date()
+        diff_date = (m_date - d_act).days
+        end_date = m_date + timedelta(days=duration)
+
+        await ctx.send(f"{character}'s release date is {year}-{month}-{day}, in {diff_date} days.\n"
+                       f"It's from {game}. It will be available for {duration} days.\n"
+                       f"{character}'s end date is {end_date}.")
 
     # --------------------------------------------------------------------------------------------------------------------
 
@@ -128,25 +134,40 @@ class CharactersDuration(Extension):
             row = self.dbObj.get_informations(used_component.ctx.values[0])
 
             if mid_update and game is None:
-                duration = durationMap[mid_update][row[2]]
+                newDuration = durationMap[mid_update][row[2]]
             elif mid_update and game:
-                duration = durationMap[mid_update][game]
+                newDuration = durationMap[mid_update][game]
             else:
-                duration = row[3]
+                newDuration = row[3]
 
-            duration = special_duration if special_duration else duration
+            newDuration = special_duration if special_duration else newDuration
 
             date_obj = datetime.strptime(row[1], "%Y/%m/%d")
 
-            month = month if month else date_obj.month
-            day = day if day else date_obj.day
-            game = game if game else row[2]
-            year = year if year else date_obj.year
+            newMonth = month if month else date_obj.month
+            newDay = day if day else date_obj.day
+            newGame = game if game else row[2]
+            newYear = year if year else date_obj.year
 
 
-            self.dbObj.update_character(used_component.ctx.values[0], month, day, game, year, duration)
+            self.dbObj.update_character(used_component.ctx.values[0], newYear, newMonth, newDay, newGame, newDuration)
 
             await used_component.ctx.send(f"Character {used_component.ctx.values[0]} updated !")
+            if year or month or day:
+                d_act = datetime.now().date()
+                m_date = datetime.strptime(f"{newYear}-{newMonth}-{newDay}", "%Y-%m-%d").date()
+                diff_date = (m_date - d_act).days
+                end_date = m_date + timedelta(days=newDuration)
+
+                await used_component.ctx.send(f"Character's release date is {newYear}-{newMonth}-{newDay}, in {diff_date} days.\n"
+                                              f"Character's end date is {end_date}.")
+
+            if mid_update or special_duration:
+                m_date = datetime.strptime(f"{newYear}-{newMonth}-{newDay}", "%Y-%m-%d").date()
+                end_date = m_date + timedelta(days=newDuration)
+
+                await used_component.ctx.send(f"It's from {newGame}. It will be available for {newDuration} days.\n"
+                                              f"Character's end date is {end_date}.")
 
 # --------------------------------------------------------------------------------------------------------------------
 
@@ -174,6 +195,6 @@ class CharactersDuration(Extension):
             self.dbObj.remove_character(used_component.ctx.values[0])
             await used_component.ctx.send(f"Character {used_component.ctx.values[0]} deleted !")
 
+# --------------------------------------------------------------------------------------------------------------------
 
 
-#################################################
