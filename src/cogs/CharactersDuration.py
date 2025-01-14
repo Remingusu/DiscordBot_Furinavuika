@@ -3,7 +3,7 @@ from ..SQLite.DatabaseHandler import DatabaseHandler
 from datetime import datetime, timedelta
 
 from interactions import Extension
-from interactions import StringSelectMenu
+from interactions import StringSelectMenu, Embed
 from interactions.api.events import Component
 from interactions import SlashContext, slash_command, slash_option, OptionType, SlashCommandChoice
 
@@ -79,7 +79,7 @@ class CharactersDuration(Extension):
         diff_date = (m_date - d_act).days
         end_date = m_date + timedelta(days=duration)
 
-        await ctx.send(f"*{character}*'s release date is **{year}-{month}-{day}**, in **{diff_date}* days.\n"
+        await ctx.send(f"*{character}*'s release date is **{year}-{month}-{day}**, in **{diff_date}** days.\n"
                        f"It's from *{game}*. It will be available for **{duration}** days.\n"
                        f"*{character}*'s end date is **{end_date}**.")
 
@@ -199,6 +199,49 @@ class CharactersDuration(Extension):
 # --------------------------------------------------------------------------------------------------------------------
 
     @slash_command(name="list", description="List all the characters and duration.")
-    async def list(self, ctx: SlashContext):
-        await ctx.send("in work...")
+    @slash_option(name="fetch", description="Choose if you want your characters or all characters",
+                  opt_type=OptionType.STRING, required=False, choices=[
+            SlashCommandChoice(name="Mine", value="mine"),
+            SlashCommandChoice(name="All", value="all"),
+        ])
+    async def list(self, ctx: SlashContext, fetch="mine"):
+        mString = "Here are "
 
+        if fetch == "all":
+            mString += "all characters !\n"
+            listCh = self.dbObj.get_list()
+        else:
+            mString += "your characters !\n"
+            listCh = self.dbObj.get_user_list(ctx.author.id)
+
+        if ctx.author.id == 1291049208870338562:
+            mEmbed = Embed(mString, color=0xd10d89)
+        elif ctx.author.id == 693761548048531509:
+            mEmbed = Embed(mString, color=0xd17c0d)
+        else:
+            mEmbed = Embed(mString)
+
+        for row in listCh:
+            content = self.dbObj.get_informations(row[0])
+
+            threeParColums = 0
+
+            d_act = datetime.now().date()
+            m_date = datetime.strptime(content[1], "%Y/%m/%d").date()
+            end_date = m_date + timedelta(days=content[3])
+
+            strEbd = f"Game: {content[2]}\n"\
+                     f"Duration: {content[3]}\n"\
+                     f"Release: {content[1]}\n"\
+                     f"Day before release: {(m_date - d_act).days}\n"\
+                     f"End: {end_date.strftime("%Y/%m/%d")}\n"\
+                     f"Day before end: {(end_date - d_act).days}\n"
+
+            if threeParColums == 3:
+                threeParColums = 0
+                mEmbed.add_field(name=content[0], value=strEbd, inline=False)
+            else:
+                threeParColums += 1
+                mEmbed.add_field(name=content[0], value=strEbd, inline=True)
+
+        await ctx.send(embed=mEmbed)

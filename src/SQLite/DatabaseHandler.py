@@ -32,3 +32,9 @@ class DatabaseHandler:
 
     def get_informations(self, character):
         return self.conn.cursor().execute("SELECT * FROM CHD WHERE name = ?", (character,)).fetchone()
+
+    def get_user_list(self, user):
+        return self.conn.cursor().execute("SELECT name FROM CHD WHERE user = ?", (user,)).fetchall()
+
+    def get_list(self):
+        return self.conn.cursor().execute("SELECT name FROM CHD").fetchall()
