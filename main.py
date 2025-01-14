@@ -9,7 +9,7 @@ async def on_startup():
 
 bot.load_extension("src.cogs.CharactersDuration")
 
-bot.start("MTMyODAwODAyODM3MjYwMjkzMA.GrPsdf.mKe7kV8_YzEL45CkHJDksrDkKKi6__ng0tvum0")
+bot.start()
 
 """
 Faire attention:
